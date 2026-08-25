@@ -3,17 +3,9 @@ name = "jwpoint"
 dynamic = ["version"]
 description = "Pointing utils for JWST"
 readme = "README.md"
-authors = [
-    { name = "Thomas Vandal", email = "thomas.vandal@umontreal.ca" }
-]
+authors = [{ name = "Thomas Vandal", email = "thomas.vandal@umontreal.ca" }]
 requires-python = ">=3.11"
-dependencies = [
-  "matplotlib",
-  "numpy",
-  "jwst",
-  "scipy",
-  "stdatamodels",
-]
+dependencies = ["matplotlib", "numpy", "jwst", "scipy", "stdatamodels"]
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]
@@ -24,3 +16,14 @@ source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/jwpoint/_version.py"
+
+[dependency-groups]
+dev = [{ include-group = "docs" }]
+docs = [
+  "ipykernel>=7.3.0",
+  "myst-nb>=1.4.0",
+  "myst-parser>=5.1.0",
+  "sphinx>=9.0.4",
+  "sphinx-autodoc-typehints>=3.6.1",
+  "sphinx-book-theme>=1.4.0",
+]
