@@ -23,8 +23,7 @@ source_suffix = {
 }
 
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-nb_execution_mode = "force"
-nb_execution_timeout = 60
+nb_execution_mode = "off"
 
 html_theme = "sphinx_book_theme"
 html_title = "jwpoint"

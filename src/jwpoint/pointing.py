@@ -482,6 +482,7 @@ def zoom_plot(
     y: int,
     size: int,
     axs: np.ndarray[Axes] | None = None,
+    show_mask: bool = True,
     psf: np.ndarray | None = None,
 ) -> np.ndarray:
     """Zoomed plot on a region of an image
@@ -489,10 +490,13 @@ def zoom_plot(
     Also plots the NaN mask on a second panel, optionally with a reference PSF
     to see where bad pixels would fall on a point source image in that region.
 
+    The mask can be turned off with ``show_mask=False``.
+
     :param img: The full image as a 2D array
     :param x: x coordinates of the image center
     :param y: y coordinate of the image center
     :param size: The size of the region to crop
+    :param show_mask: Show the bad pixel mask if True
     :param axs: Two Axes on which the plots should go.
                 Fetch from the current figure if None.
                 Defaults to None.
@@ -502,11 +506,19 @@ def zoom_plot(
     :return: The boolean mask indicating NaNs in the final zoomed in region.
     """
     axs = axs if axs is not None else plt.gcf().axes
+    if show_mask and len(axs) == 0:
+        plt.close()
+        _, axs = plt.subplots(1, 2, figsize=(10, 5))
+    elif len(axs) == 0:
+        axs = [plt.gca()]
     hs = size // 2
     region = img[y - hs : y + hs, x - hs : x + hs]
     axs[0].imshow(region, norm="symlog")
 
     region_mask = np.isnan(region)
+    if not show_mask:
+        return region_mask
+
     if psf is not None and psf.shape == region.shape:
         img_with_bad = psf.copy()
         img_with_bad[region_mask] = np.nan

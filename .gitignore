@@ -8,5 +8,10 @@ wheels/
 _version.py
 docs/_build
 
+.ipynb_checkpoints/
+
+/jw*.fits
+docs/**/jw*.fits
+
 # Virtual environments
 .venv
