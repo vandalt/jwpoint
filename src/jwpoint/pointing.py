@@ -1,12 +1,16 @@
+from collections.abc import Iterable
 from pathlib import Path
+from typing import TypeAlias
 
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 from jwst import datamodels
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from scipy.ndimage import convolve, median_filter, uniform_filter
 from stdatamodels.jwst.datamodels import JwstDataModel
+
+InputFile: TypeAlias = str | Path | JwstDataModel
 
 PSCALE_DICT = {
     "NRCBLONG": 0.063,
@@ -18,7 +22,17 @@ V2V3_REF_DICT = {
 }
 
 
+# TODO: Filter or just any image??
+# TODO: Link to scipy function?
 def filter_crop(img_crop: np.ndarray) -> np.ndarray:
+    """Fix bad pixel in a cropped image via median filter
+
+    This function uses ``scipy.ndimage.median_filter()``,
+    but it sets the NaNs to zero to avoid propagation
+
+    :param img_crop: Cropped image of a PSF
+    :return: The image with bad pixels replaced by median filter
+    """
     img_crop_clean = img_crop.copy()
     nan_crop_mask = np.isnan(img_crop)
     img_crop_clean[nan_crop_mask] = 0.0
@@ -26,19 +40,43 @@ def filter_crop(img_crop: np.ndarray) -> np.ndarray:
     return img_crop_clean
 
 
-def _ensure_model(file: str | Path | JwstDataModel) -> JwstDataModel:
+# TODO: Link to datamodels.open()
+def _ensure_model(file: InputFile) -> JwstDataModel:
+    """Utility function to ensure that the input file is a JWST data model
+
+    If ``file`` is a data model, it is returned directly.
+    Otherwise the file is opened with ``jwst.datamodels.open()``.
+
+    :param file: The input file path or data model
+    :return: The data model
+    """
     if not isinstance(file, JwstDataModel):
         return datamodels.open(file)
     else:
         return file
 
 
+# TODO: Not sure this is the best name for the function
 def apply_pointing(
     xoffset: float,
     yoffset: float,
-    file: str | Path | JwstDataModel,
+    file: InputFile,
     coords: str = "detector",
 ) -> tuple[float, float]:
+    """Get the pointing position coordinates with an offset applied
+
+    The pointing position is always returned in detector coordinates (pixels).
+
+    :param xoffset: x or V2 offset [arcsec]
+    :param yoffset: y or V3 offset [arcsec]
+    :param file: File that will be used to get the WCS
+                 and derive the pointing posision
+    :param coords: Coordinates in which the transofmration is applied internally.
+                   This does not change the output coordinates which are always pixels.
+                   Can be ``"detector"`` or ``"v2v3"``.
+    :raises ValueError: Raised if an invalid ``coords`` argument is provided
+    :return: The pointing detector coordinates in pixels
+    """
     model = _ensure_model(file)
 
     detector = model.meta.instrument.detector
@@ -69,9 +107,23 @@ def apply_pointing(
 def calculate_offset(
     xpoint: float,
     ypoint: float,
-    file: str | Path | JwstDataModel,
+    file: InputFile,
     coords: str = "detector",
 ) -> tuple[float, float]:
+    """Calculate the applied offset based on the final pointing position
+
+    The offset is always returned in detector coordinates (X-Y) with units of arcseconds.
+
+    :param xoffset: x pointing position [pixel or arcsec]
+    :param yoffset: y pointing position [pixel or arcsec]
+    :param file: File that will be used to get the WCS
+                 and derive the offsets.
+    :param coords: Coordinates in which the transofmration is applied internally.
+                   This does not change the output coordinates which are always arcsec.
+                   Can be ``"detector"`` or ``"v2v3"``.
+    :raises ValueError: Raised if an invalid ``coords`` argument is provided
+    :return: The offset applied to the reference position
+    """
     model = _ensure_model(file)
 
     detector = model.meta.instrument.detector
@@ -398,7 +450,9 @@ def do_region_search(
     else:
         plt.close(fig)
 
-    fig, axs = plt.subplots(2, n_top, figsize=(20, 5), sharex=True, sharey=True, squeeze=False)
+    fig, axs = plt.subplots(
+        2, n_top, figsize=(20, 5), sharex=True, sharey=True, squeeze=False
+    )
     for i in range(n_top):
         region_y, region_x = best_y[i], best_x[i]
         region = img[
@@ -430,6 +484,23 @@ def zoom_plot(
     axs: np.ndarray[Axes] | None = None,
     psf: np.ndarray | None = None,
 ) -> np.ndarray:
+    """Zoomed plot on a region of an image
+
+    Also plots the NaN mask on a second panel, optionally with a reference PSF
+    to see where bad pixels would fall on a point source image in that region.
+
+    :param img: The full image as a 2D array
+    :param x: x coordinates of the image center
+    :param y: y coordinate of the image center
+    :param size: The size of the region to crop
+    :param axs: Two Axes on which the plots should go.
+                Fetch from the current figure if None.
+                Defaults to None.
+    :param psf: Image of a reference PSF as a 2D array.
+                Must have a shape ``(size,  size)``.
+                Defalts to None.
+    :return: The boolean mask indicating NaNs in the final zoomed in region.
+    """
     axs = axs if axs is not None else plt.gcf().axes
     hs = size // 2
     region = img[y - hs : y + hs, x - hs : x + hs]
@@ -445,7 +516,30 @@ def zoom_plot(
     return region_mask
 
 
-def plot_dithers(img, xopt_all, yopt_all, size, psf=None) -> tuple[Figure, Figure]:
+# TODO: Check that zoom_plot renders here
+def plot_dithers(
+    img: np.ndarray,
+    xopt_all: Iterable[int],
+    yopt_all: Iterable[int],
+    size: int,
+    psf: np.ndarray | None = None,
+) -> tuple[Figure, Figure]:
+    """Plot the pointing for multiple dithers
+
+    This function produces two plots:
+
+    - A full image with the dithers marked by their pattern number
+    - A figure with a zoomed-in view on each dither using :func:`zoom_plot`.
+
+    :param img: The full-frame image
+    :param xopt_all: The x position of each dither
+    :param yopt_all: The y position of each dither
+    :param size: The size to use for the zoomed-in plots
+    :param psf: A PSF with shape ``(size, size)`` to visualize a point source
+                in the region corresponding to each dither. Only the bad pixel
+                mask is shown if no PSF is passsed. Defaults to None.
+    :return: The two figures (full frame and zoomed-in)
+    """
     xopt_all = list(map(int, xopt_all))
     yopt_all = list(map(int, yopt_all))
     ndithers = len(xopt_all)
@@ -464,7 +558,21 @@ def plot_dithers(img, xopt_all, yopt_all, size, psf=None) -> tuple[Figure, Figur
     return fig_full, fig_zoom
 
 
-def long_to_short(x: float, y: float, file_lw, file_sw):
+def long_to_short(
+    x: float, y: float, file_lw: InputFile, file_sw: InputFile
+) -> tuple[float, float]:
+    """Convert position from the long- to short-wavelength channel for NIRCam
+
+    The long-wavelenth (LW) X-Y detector position is converted to V2-V3 using
+    the LW file. This is then converted to short-wavelength (SW)
+    X-Y detector position using the SW file.
+
+    :param x: X position in the LW channel
+    :param y: Y position in the SW channel
+    :param file_lw: LW file to use for WCS
+    :param file_sw: SW file to use for WCS
+    :return: The X and Y positions in SW
+    """
     model_lw = _ensure_model(file_lw)
     model_sw = _ensure_model(file_sw)
 
@@ -474,7 +582,21 @@ def long_to_short(x: float, y: float, file_lw, file_sw):
     return x_sw, y_sw
 
 
-def get_sw_detector(x: int, y: int, subarray) -> str:
+# TODO: Support more subarrays
+def get_sw_detector(x: int, y: int, subarray: str) -> str:
+    """Get the short-wavelength detector for a given long-wavelength position
+
+    .. warning::
+
+       Only ``FULL`` and ``SUB400P`` subarrays are supported. Support for
+       additional subarrays has not yet been implemented.
+
+    :param x: X position in the long-wavelength channel
+    :param y: Y position in the long-wavelength channel
+    :param subarray: Subarray in the long-wavelength channel
+    :raises ValueError: Raises an error if an unsupported subarray is passed
+    :return: The short-wavelength detector name in lowercase
+    """
     if subarray == "FULL" or subarray == "FULLP":
         npix = 2048
         top = y > npix // 2
@@ -490,15 +612,31 @@ def get_sw_detector(x: int, y: int, subarray) -> str:
     elif subarray == "SUB400P":
         det_sw = "nrcb1"
     else:
-        raise ValueError(f"Unexpected subarray {subarray}. Only FULL and SUB400P supported.")
+        raise ValueError(
+            f"Unexpected subarray {subarray}. Only FULL and SUB400P supported."
+        )
     return det_sw
 
 
-def xy_to_v2v3(x, y, model):
+def xy_to_v2v3(x: float, y: float, model: InputFile) -> tuple[float, float]:
+    """Convert X-Y detector position to V2-V3
+
+    :param x: X position in detector coordinates
+    :param y: Y position in detector coordinates
+    :param model: File used to define WCS
+    :return: V2 and V3 cooordinates
+    """
     model = _ensure_model(model)
     return model.meta.wcs.transform("detector", "v2v3", x, y)
 
 
-def v2v3_to_xy(v2, v3, model):
+def v2v3_to_xy(v2: float, v3: float, model: InputFile) -> tuple[float, float]:
+    """Convert V2-V3 coordinates to detector position
+
+    :param v2: V2 position
+    :param v3: V3 position
+    :param model: File used to define WCS coordinates
+    :return: x and y detector coordinates
+    """
     model = _ensure_model(model)
     return model.meta.wcs.transform("v2v3", "detector", v2, v3)
