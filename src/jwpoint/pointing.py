@@ -1,12 +1,9 @@
-from collections.abc import Iterable
 from pathlib import Path
 from typing import TypeAlias
 
 import matplotlib.pyplot as plt
 import numpy as np
 from jwst import datamodels
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 from scipy.ndimage import convolve, median_filter, uniform_filter
 from stdatamodels.jwst.datamodels import JwstDataModel
 
@@ -14,6 +11,10 @@ InputFile: TypeAlias = str | Path | JwstDataModel
 
 PSCALE_DICT = {
     "NRCBLONG": 0.063,
+    "NRCB1": 0.031,
+    "NRCB2": 0.031,
+    "NRCB3": 0.031,
+    "NRCB4": 0.031,
 }
 V2V3_REF_DICT = {
     "NRCBS_FULL": (-83.63, -495.98),

@@ -39,6 +39,8 @@ def zoom_plot(
     if show_mask and len(axs) == 0:
         plt.close()
         _, axs = plt.subplots(1, 2, figsize=(10, 5))
+    elif isinstance(axs, Axes):
+        axs = [axs]
     elif len(axs) == 0:
         axs = [plt.gca()]
     hs = size // 2
