@@ -1,4 +1,4 @@
-# Pointing utilities
+# Pointing
 
 ```{eval-rst}
 .. automodule:: jwpoint.pointing
