@@ -308,6 +308,7 @@ def find_regions(
         max_row = 2048
         max_col = 2048
     elif subarray.upper() == "SUB400P":
+        # Limit to 300 in LW because SW FOV is smaller
         min_row = 300
         min_col = 300
         max_row = 350
@@ -408,8 +409,9 @@ def do_region_search(
                            Defaults to ``None``.
     :param min_edge_distance: Minimal distance to keep from the edge in pixels.
                               Defaults to ``None``.
-    :param subarray: Subarray to use for the region search. If ``None``, the FULL subarray is used.
-                     Defaults to ``None``.
+    :param subarray: Subarray to use for the region search. This is mostly useful in cases where
+                     the LW and SW channels have different field of view.
+                     If ``None``, all pixels in the image are used. Defaults to ``None``.
     :param show: Show the plots if True
     :return: The X and Y offsets
     """
@@ -432,7 +434,14 @@ def do_region_search(
     )
 
     n_top = min(n_top, len(best_x))
+    if n_top == 0:
+        print(
+            "WARNING: No optimal region was was found. "
+            "Try relaxing the constraints."
+        )
+        return (np.nan, np.nan)
 
+    # TODO: Plot dithers and optimally return them?
     # Plot the full frame DQ, weighted DQ and SCI frames with the best regions
     fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharex=True, sharey=True)
     axs[0].imshow(dq_mask)

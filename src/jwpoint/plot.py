@@ -44,15 +44,29 @@ def zoom_plot(
     elif len(axs) == 0:
         axs = [plt.gca()]
     hs = size // 2
-    region = img[y - hs : y + hs, x - hs : x + hs]
+    low_y = max(0, y - hs)
+    low_x = max(0, x - hs)
+    region = img[low_y : y + hs, low_x : x + hs]
     axs[0].imshow(region, norm="symlog")
 
     region_mask = np.isnan(region)
     if not show_mask:
         return region_mask
 
-    if psf is not None and psf.shape == region.shape:
-        img_with_bad = psf.copy()
+    if psf is not None:
+        if psf.shape == region.shape:
+            psf_region = psf
+        else:
+            if hs > y:
+                low_y = hs - y
+            else:
+                low_y = 0
+            if hs > x:
+                low_x = hs - x
+            else:
+                low_x = 0
+            psf_region = psf[low_y:, low_x:]
+        img_with_bad = psf_region.copy()
         img_with_bad[region_mask] = np.nan
         axs[1].imshow(img_with_bad, norm="symlog")
     else:
