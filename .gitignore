@@ -21,4 +21,5 @@ docs/**/jw*.fits
 docs/**/jw*.fits
 /data/
 docs/data/
+docs/tutorials/data/
 docs/tutorials/*.md
