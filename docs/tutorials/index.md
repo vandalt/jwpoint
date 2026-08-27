@@ -5,4 +5,5 @@
 
 getting-started
 understand-pointing
+optimize-pointing
 ```
