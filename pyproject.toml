@@ -17,9 +17,6 @@ source = "vcs"
 [tool.hatch.build.hooks.vcs]
 version-file = "src/jwpoint/_version.py"
 
-[tool.uv.sources]
-mastodown = { path = "../mastodown", editable = true }
-
 [dependency-groups]
 dev = ["ipython", { include-group = "docs" }]
 docs = [

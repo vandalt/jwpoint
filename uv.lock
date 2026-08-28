@@ -1273,7 +1273,7 @@ requires-dist = [
 dev = [
     { name = "ipykernel", specifier = ">=7.3.0" },
     { name = "ipython" },
-    { name = "mastodown", editable = "../mastodown" },
+    { name = "mastodown" },
     { name = "myst-nb", specifier = ">=1.4.0" },
     { name = "myst-parser", specifier = ">=5.1.0" },
     { name = "sphinx", specifier = ">=9.0.4" },
@@ -1282,7 +1282,7 @@ dev = [
 ]
 docs = [
     { name = "ipykernel", specifier = ">=7.3.0" },
-    { name = "mastodown", editable = "../mastodown" },
+    { name = "mastodown" },
     { name = "myst-nb", specifier = ">=1.4.0" },
     { name = "myst-parser", specifier = ">=5.1.0" },
     { name = "sphinx", specifier = ">=9.0.4" },
@@ -1557,34 +1557,16 @@ wheels = [
 
 [[package]]
 name = "mastodown"
-source = { editable = "../mastodown" }
+version = "0.1.4"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "astroquery" },
     { name = "pandas" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "astroquery" },
-    { name = "pandas" },
+sdist = { url = "https://files.pythonhosted.org/packages/de/1d/74118ce019cb2874dbc48f134f45f0a68e3e8ce085d72811c875ec9ccf35/mastodown-0.1.4.tar.gz", hash = "sha256:0a0debcff664e930a909819940e4ebdc06b166bbb97570958d4525dcf51f4b85", size = 94700, upload-time = "2026-08-25T02:50:14.393Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8f/5c/b1a9c82c8d460dc8c03ddff120b694282617cd9b9eacebfeb843ef8f72da/mastodown-0.1.4-py3-none-any.whl", hash = "sha256:f0a4318c00b837f92c7552bfe48889db49660f35636ad93750d932ac49f08f64", size = 8709, upload-time = "2026-08-25T02:50:13.173Z" },
 ]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "furo", specifier = ">=2025.12.19" },
-    { name = "ipython" },
-    { name = "myst-parser", specifier = ">=5.1.0" },
-    { name = "pytest" },
-    { name = "sphinx", specifier = ">=9.0.4" },
-    { name = "sphinx-autodoc-typehints", specifier = ">=3.6.1" },
-]
-docs = [
-    { name = "furo", specifier = ">=2025.12.19" },
-    { name = "myst-parser", specifier = ">=5.1.0" },
-    { name = "sphinx", specifier = ">=9.0.4" },
-    { name = "sphinx-autodoc-typehints", specifier = ">=3.6.1" },
-]
-test = [{ name = "pytest" }]
 
 [[package]]
 name = "matplotlib"
