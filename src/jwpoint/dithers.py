@@ -2,6 +2,8 @@ from importlib.resources import files
 
 from pandas import DataFrame, read_csv
 
+__all__ = ["get_dither_info"]
+
 DITHER_FILES = {
     "INTRAMODULEBOX": "NircamImagingIntramoduleBox.txt",
     "SUBARRAY_DITHER": "NircamImagingSubarrayDither.txt",
