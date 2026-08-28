@@ -74,7 +74,6 @@ def zoom_plot(
     return region_mask
 
 
-# TODO: Check that zoom_plot renders here
 def plot_dithers(
     img: np.ndarray,
     xopt_all: Iterable[int],

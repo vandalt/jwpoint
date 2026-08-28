@@ -23,13 +23,11 @@ V2V3_REF_DICT = {
 }
 
 
-# TODO: Filter or just any image??
-# TODO: Link to scipy function?
-def filter_crop(img_crop: np.ndarray) -> np.ndarray:
+def filter_nans(img_crop: np.ndarray) -> np.ndarray:
     """Fix bad pixel in a cropped image via median filter
 
-    This function uses ``scipy.ndimage.median_filter()``,
-    but it sets the NaNs to zero to avoid propagation
+    This function uses :func:`scipy.ndimage.median_filter`,
+    but it sets the NaNs to zero beforehand to avoid propagation.
 
     :param img_crop: Cropped image of a PSF
     :return: The image with bad pixels replaced by median filter
@@ -41,12 +39,11 @@ def filter_crop(img_crop: np.ndarray) -> np.ndarray:
     return img_crop_clean
 
 
-# TODO: Link to datamodels.open()
 def _ensure_model(file: InputFile) -> JwstDataModel:
     """Utility function to ensure that the input file is a JWST data model
 
     If ``file`` is a data model, it is returned directly.
-    Otherwise the file is opened with ``jwst.datamodels.open()``.
+    Otherwise the file is opened with :func:`jwst.datamodels.open`.
 
     :param file: The input file path or data model
     :return: The data model
@@ -57,12 +54,11 @@ def _ensure_model(file: InputFile) -> JwstDataModel:
         return file
 
 
-# TODO: Not sure this is the best name for the function
-def apply_pointing(
+def get_pointing_position(
     xoffset: float,
     yoffset: float,
     file: InputFile,
-    coords: str = "detector",
+    offset_frame: str = "detector",
 ) -> tuple[float, float]:
     """Get the pointing position coordinates with an offset applied
 
@@ -86,7 +82,7 @@ def apply_pointing(
     aperture = model.meta.aperture.pps_name
     v2_ref, v3_ref = V2V3_REF_DICT[aperture]
 
-    if coords == "detector":
+    if offset_frame == "detector":
         xref_pix, yref_pix = model.meta.wcs.transform(
             "v2v3", "detector", v2_ref, v3_ref
         )
@@ -96,13 +92,13 @@ def apply_pointing(
 
         return xref_pix + xoff_pix, yref_pix + yoff_pix
 
-    elif coords == "v2v3":
+    elif offset_frame == "v2v3":
         v2_point = v2_ref - xoffset
         v3_point = v3_ref + yoffset
 
         return model.meta.wcs.transform("v2v3", "detector", v2_point, v3_point)
     else:
-        raise ValueError(f"coords should be 'detector' or 'v2v3'. Got {coords}")
+        raise ValueError(f"coords should be 'detector' or 'v2v3'. Got {offset_frame}")
 
 
 def calculate_offset(
@@ -435,13 +431,9 @@ def do_region_search(
 
     n_top = min(n_top, len(best_x))
     if n_top == 0:
-        print(
-            "WARNING: No optimal region was was found. "
-            "Try relaxing the constraints."
-        )
-        return (np.nan, np.nan)
+        print("WARNING: No optimal region was was found. Try relaxing the constraints.")
+        return (np.array([np.nan]), np.atleast_1d([np.nan]))
 
-    # TODO: Plot dithers and optimally return them?
     # Plot the full frame DQ, weighted DQ and SCI frames with the best regions
     fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharex=True, sharey=True)
     axs[0].imshow(dq_mask)
@@ -486,8 +478,6 @@ def do_region_search(
     return best_x, best_y
 
 
-
-
 def long_to_short(
     x: float, y: float, file_lw: InputFile, file_sw: InputFile
 ) -> tuple[float, float]:
@@ -512,7 +502,6 @@ def long_to_short(
     return x_sw, y_sw
 
 
-# TODO: Support more subarrays
 def get_sw_detector(x: int, y: int, subarray: str) -> str:
     """Get the short-wavelength detector for a given long-wavelength position
 

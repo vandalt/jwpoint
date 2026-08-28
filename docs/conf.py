@@ -1,7 +1,7 @@
 """Configuration for the jwpoint Sphinx documentation."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 DOCS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(DOCS_DIR.parent / "src"))
@@ -13,9 +13,15 @@ author = "Thomas Vandal"
 extensions = [
     "myst_nb",
     "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx_autodoc_typehints",
 ]
+
+intersphinx_mapping = {
+    "scipy": ("https://docs.scipy.org/doc/scipy", None),
+    "jwst": ("https://jwst-pipeline.readthedocs.io/en/latest", None),
+}
 
 source_suffix = {
     ".md": "myst-nb",
