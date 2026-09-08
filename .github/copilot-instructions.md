@@ -3,12 +3,12 @@
 ## Development commands
 
 - The project requires Python 3.11+ and uses `uv`. Create or synchronize the
-  development environment with `uv sync`.
+  development environment with `uv sync --group dev`.
+- Run the test suite with `uv run pytest`; run an individual test with
+  `uv run pytest tests/test_dithers.py::test_get_dither_info_returns_subarray_offsets`.
 - Build distributions with `uv build`.
 - Build the HTML documentation with `uv run make -C docs html`.
-- There is currently no committed test suite, test runner configuration, or
-  lint configuration. Do not invent test or lint commands; use any targeted
-  validation added alongside the change.
+- No lint configuration is committed; do not invent lint commands.
 
 ## Architecture
 

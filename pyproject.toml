@@ -18,7 +18,8 @@ source = "vcs"
 version-file = "src/jwpoint/_version.py"
 
 [dependency-groups]
-dev = ["ipython", { include-group = "docs" }]
+dev = ["ipython", { include-group = "docs" }, { include-group = "test" }]
+test = ["pytest"]
 docs = [
   "ipykernel>=7.3.0",
   "mastodown",
