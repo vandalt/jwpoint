@@ -2,6 +2,8 @@ from importlib.resources import files
 
 from pandas import DataFrame, read_csv
 
+from jwpoint.constants import PSCALE_DICT
+
 __all__ = ["get_dither_info"]
 
 DITHER_FILES = {
@@ -10,7 +12,7 @@ DITHER_FILES = {
 }
 
 
-def get_dither_info(pattern: str, ndithers: int | None = None) -> DataFrame:
+def get_dither_info(pattern: str, ndithers: int | None = None, detector: str | None = None) -> DataFrame:
     data_dir = files("jwpoint") / "data"
     filepath = data_dir / DITHER_FILES[pattern]
     dither_df = read_csv(
@@ -21,4 +23,9 @@ def get_dither_info(pattern: str, ndithers: int | None = None) -> DataFrame:
         names=["x", "y"],
         index_col=0,
     ).reset_index(drop=True)[:ndithers]
+    if detector is None:
+        return dither_df
+    pscale = PSCALE_DICT[detector]
+    dither_df.x = dither_df.x / pscale
+    dither_df.y = dither_df.y / pscale
     return dither_df

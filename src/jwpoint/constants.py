@@ -1,0 +1,12 @@
+PSCALE_DICT = {
+    "NRCBLONG": 0.063,
+    "NRCB1": 0.031,
+    "NRCB2": 0.031,
+    "NRCB3": 0.031,
+    "NRCB4": 0.031,
+}
+V2V3_REF_DICT = {
+    "NRCBS_FULL": (-83.63, -495.98),
+    "NRCB5_FULLP": (-133.181, -446.804),
+    "NRCB5_SUB400P": (-148.665, -432.148),
+}
