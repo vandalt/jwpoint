@@ -3,6 +3,8 @@ from typing import TypeAlias
 
 import matplotlib.pyplot as plt
 import numpy as np
+from astropy.io import fits
+from astroquery.mast import Observations
 from jwst import datamodels
 from scipy.ndimage import convolve, median_filter, uniform_filter
 from stdatamodels.jwst.datamodels import JwstDataModel
@@ -535,6 +537,33 @@ def get_sw_detector(x: int, y: int, subarray: str) -> str:
             f"Unexpected subarray {subarray}. Only FULL and SUB400P supported."
         )
     return det_sw
+
+
+def download_sw_file(lw_path: Path | str, x: int, y: int) -> Path:
+    """Download the SW file associated with a LW file and a pointing
+
+    The LW subarray is inferred from the LW file and the directory
+    is the same as for the LW file.
+
+    :param lw_path: Full path to the LW file
+    :param x: X position in the LW image
+    :param y: Y position in the LW image
+    :return: Full path to the SW file
+    """
+    lw_path = Path(lw_path)
+
+    with fits.open(lw_path) as hdul:
+        subarray = hdul[0].header["SUBARRAY"]
+    detector_sw = get_sw_detector(x, y, subarray)
+
+    filename_sw = lw_path.name.replace("nrcblong", detector_sw)
+
+    uri = f"mast:JWST/product/{filename_sw}"
+
+    filepath_sw = lw_path.parent / filename_sw
+
+    _ = Observations.download_file(uri, local_path=filepath_sw)
+    return filepath_sw
 
 
 def xy_to_v2v3(x: float, y: float, model: InputFile) -> tuple[float, float]:
