@@ -1,3 +1,4 @@
+from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 from pandas import DataFrame
@@ -228,6 +229,60 @@ def find_regions(
     return best_x, best_y
 
 
+def plot_full(
+    best_x: np.ndarray,
+    best_y: np.ndarray,
+    dq_mask: np.ndarray,
+    weighted_mask: np.ndarray,
+    img: np.ndarray,
+) -> Figure:
+    # Plot the full frame DQ, weighted DQ and SCI frames with the best regions
+    fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharex=True, sharey=True)
+    axs[0].imshow(dq_mask)
+    axs[1].imshow(weighted_mask, norm="symlog")
+    axs[2].imshow(img, norm="symlog")
+    axs[0].set_title("Bad pixel mask")
+    axs[1].set_title("Weighted bad pixel mask")
+    axs[2].set_title("Science image")
+    fig.suptitle("Regions shown on the full detector frame")
+    assert best_x.shape == best_y.shape, "X and Y should have equal lengths"
+    n_top = best_x.shape[0]
+    for i in range(n_top):
+        axs[0].scatter(best_x[i], best_y[i], marker=f"${i + 1}$", color="r")
+        axs[1].scatter(best_x[i], best_y[i], marker=f"${i + 1}$", color="r")
+        axs[2].scatter(best_x[i], best_y[i], marker=f"${i + 1}$", color="r")
+    return fig
+
+
+def plot_regions(
+    best_x: np.ndarray,
+    best_y: np.ndarray,
+    region_hs: int,
+    img: np.ndarray,
+    psf: np.ndarray,
+) -> Figure:
+    assert best_x.shape == best_y.shape, "X and Y should have equal lengths"
+    n_top = best_x.shape[0]
+    fig, axs = plt.subplots(
+        2, n_top, figsize=(20, 5), sharex=True, sharey=True, squeeze=False
+    )
+    for i in range(n_top):
+        region_y, region_x = best_y[i], best_x[i]
+        region = img[
+            region_y - region_hs : region_y + region_hs,
+            region_x - region_hs : region_x + region_hs,
+        ]
+        nan_count = np.sum(np.isnan(region))
+        axs[0, i].imshow(region, norm="symlog")
+        axs[0, i].set_title(f"Region {i + 1}: {nan_count} DQ")
+
+        img_with_bad = psf.copy()
+        region_mask = np.isnan(region)
+        img_with_bad[region_mask] = np.nan
+        axs[1, i].imshow(img_with_bad, norm="symlog")
+    fig.suptitle("Regions shown on the science image and bad pixels overlaid on a PSF")
+
+
 def do_region_search(
     dq_mask: np.ndarray,
     img: np.ndarray,
@@ -291,42 +346,13 @@ def do_region_search(
         print("WARNING: No optimal region was was found. Try relaxing the constraints.")
         return (np.array([np.nan]), np.atleast_1d([np.nan]))
 
-    # Plot the full frame DQ, weighted DQ and SCI frames with the best regions
-    fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharex=True, sharey=True)
-    axs[0].imshow(dq_mask)
-    axs[1].imshow(weighted_mask, norm="symlog")
-    axs[2].imshow(img, norm="symlog")
-    axs[0].set_title("Bad pixel mask")
-    axs[1].set_title("Weighted bad pixel mask")
-    axs[2].set_title("Science image")
-    fig.suptitle("Regions shown on the full detector frame")
-    for i in range(n_top):
-        axs[0].scatter(best_x[i], best_y[i], marker=f"${i + 1}$", color="r")
-        axs[1].scatter(best_x[i], best_y[i], marker=f"${i + 1}$", color="r")
-        axs[2].scatter(best_x[i], best_y[i], marker=f"${i + 1}$", color="r")
+    fig = plot_full(best_x, best_y, dq_mask, weighted_mask, img)
     if show:
         plt.show()
     else:
         plt.close(fig)
 
-    fig, axs = plt.subplots(
-        2, n_top, figsize=(20, 5), sharex=True, sharey=True, squeeze=False
-    )
-    for i in range(n_top):
-        region_y, region_x = best_y[i], best_x[i]
-        region = img[
-            region_y - region_hs : region_y + region_hs,
-            region_x - region_hs : region_x + region_hs,
-        ]
-        nan_count = np.sum(np.isnan(region))
-        axs[0, i].imshow(region, norm="symlog")
-        axs[0, i].set_title(f"Region {i + 1}: {nan_count} DQ")
-
-        img_with_bad = psf.copy()
-        region_mask = np.isnan(region)
-        img_with_bad[region_mask] = np.nan
-        axs[1, i].imshow(img_with_bad, norm="symlog")
-    fig.suptitle("Regions shown on the science image and bad pixels overlaid on a PSF")
+    fig = plot_regions(best_x, best_y, region_hs, img, psf)
     if show:
         plt.show()
     else:
