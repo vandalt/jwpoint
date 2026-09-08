@@ -48,8 +48,8 @@ def test_find_regions_accepts_dataframe_joint_offsets():
         min_edge_distance=2,
     )
 
-    assert np.array_equal(x, [2])
-    assert np.array_equal(y, [2])
+    np.testing.assert_array_equal(x, [[2, 3]])
+    np.testing.assert_array_equal(y, [[2, 2]])
 
 
 @pytest.mark.parametrize(
