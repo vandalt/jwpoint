@@ -4,6 +4,8 @@
 :maxdepth: 1
 
 dithers
-pointing
 plot
+pointing
+search
+utils
 ```
