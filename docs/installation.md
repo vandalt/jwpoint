@@ -24,10 +24,18 @@ Install the package and development dependencies with
 uv sync
 ```
 
-## Building the documentation
+### Building the documentation
 
 Build the HTML documentation with:
 
 ```console
 uv run make -C docs html
+```
+
+### Running the unit tests
+
+Run the unit tests with [pytest](https://pytest.org/):
+
+```console
+uv run pytest
 ```
