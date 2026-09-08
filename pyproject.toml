@@ -5,7 +5,7 @@ description = "Pointing utils for JWST"
 readme = "README.md"
 authors = [{ name = "Thomas Vandal", email = "thomas.vandal@umontreal.ca" }]
 requires-python = ">=3.11"
-dependencies = ["matplotlib", "numpy", "jwst", "scipy", "stdatamodels"]
+dependencies = ["matplotlib", "numpy", "jwst", "scipy", "stdatamodels", "pandas"]
 
 [build-system]
 requires = ["hatchling", "hatch-vcs"]

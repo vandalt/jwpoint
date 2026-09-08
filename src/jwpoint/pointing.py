@@ -6,6 +6,7 @@ import numpy as np
 from astropy.io import fits
 from astroquery.mast import Observations
 from jwst import datamodels
+from pandas import DataFrame
 from scipy.ndimage import convolve, median_filter, uniform_filter
 from stdatamodels.jwst.datamodels import JwstDataModel
 
@@ -256,7 +257,15 @@ def find_regions(
         dq_count = np.where(forbidden_invalid, np.inf, dq_count)
 
     if joint_offsets is not None:
-        if isinstance(joint_offsets, np.ndarray):
+        if isinstance(joint_offsets, (dict, DataFrame)):
+            if "x" not in joint_offsets or "y" not in joint_offsets:
+                raise KeyError(
+                    "If joint_offset is a mapping, it must have keys 'x' and 'y'."
+                )
+            normalized_offsets = [
+                map(int, xy) for xy in zip(joint_offsets["x"], joint_offsets["y"])
+            ]
+        elif isinstance(joint_offsets, np.ndarray):
             if joint_offsets.ndim != 2 or joint_offsets.shape[1] != 2:
                 raise ValueError(
                     "joint_offsets numpy array must have shape (n_offsets, 2)"
