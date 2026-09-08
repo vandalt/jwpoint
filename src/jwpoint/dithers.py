@@ -12,7 +12,9 @@ DITHER_FILES = {
 }
 
 
-def get_dither_info(pattern: str, ndithers: int | None = None, detector: str | None = None) -> DataFrame:
+def get_dither_info(
+    pattern: str, n_dithers: int | None = None, detector: str | None = None
+) -> DataFrame:
     data_dir = files("jwpoint") / "data"
     filepath = data_dir / DITHER_FILES[pattern]
     dither_df = read_csv(
@@ -22,7 +24,7 @@ def get_dither_info(pattern: str, ndithers: int | None = None, detector: str | N
         header=None,
         names=["x", "y"],
         index_col=0,
-    ).reset_index(drop=True)[:ndithers]
+    ).reset_index(drop=True)[:n_dithers]
     if detector is None:
         return dither_df
     pscale = PSCALE_DICT[detector]

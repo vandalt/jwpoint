@@ -23,7 +23,7 @@ def test_get_dither_info_returns_subarray_offsets(expected_offsets):
 
 
 def test_get_dither_info_limits_number_of_dithers(expected_offsets):
-    result = get_dither_info("SUBARRAY_DITHER", ndithers=2)
+    result = get_dither_info("SUBARRAY_DITHER", n_dithers=2)
 
     assert_frame_equal(result, expected_offsets.iloc[:2])
 

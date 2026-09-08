@@ -4,6 +4,7 @@ from matplotlib.figure import Figure
 from pandas import DataFrame
 from scipy.ndimage import convolve, uniform_filter
 
+from jwpoint.dithers import get_dither_info
 from jwpoint.plot import plot_dithers, zoom_plot
 
 
@@ -178,6 +179,7 @@ def find_regions(
         # Mark regions with any forbidden pixels as invalid (set to inf)
         dq_count = np.where(forbidden_invalid, np.inf, dq_count)
 
+    # TODO: Maybe extract some of this?
     if joint_offsets is not None:
         if isinstance(joint_offsets, (dict, DataFrame)):
             if "x" not in joint_offsets or "y" not in joint_offsets:
@@ -303,6 +305,9 @@ def do_region_search(
     region_size: int,
     psf: np.ndarray,
     n_top: int = 5,
+    dither_pattern: str | None = None,
+    n_dithers: int | None = None,
+    detector: str | None = None,
     kernel: str | np.ndarray = "uniform",
     forbidden_size: int | None = None,
     joint_offsets: list[tuple[int, int]] | None = None,
@@ -341,6 +346,19 @@ def do_region_search(
 
     if kernel == "weighted":
         kernel = psf + np.ones_like(psf)
+
+    if dither_pattern is not None:
+        if joint_offsets is not None:
+            raise TypeError(
+                "Only one of 'dither_pattern' and 'joint_offsets' is supported."
+            )
+        if detector is None:
+            raise TypeError(
+                "detector is required to convert dither pattern from arcsec to pixels."
+            )
+        joint_offsets = get_dither_info(dither_pattern, n_dithers=n_dithers, detector=detector)
+    elif n_dithers is not None and joint_offsets is not None:
+        print("WARNING: n_dithers will be ignored since joint_offsets was specified.")
 
     # Find the n_top best regions
     best_x, best_y, weighted_mask = find_regions(
